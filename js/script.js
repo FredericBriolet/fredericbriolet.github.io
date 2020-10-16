@@ -112,7 +112,7 @@ function getClicked3DPoint(evt) {
 
             meshesRotationTarget = 0;
             meshesRotationTargetLocked = true;
-            TweenLite.to(mainMonolith.mesh.rotation, 5, {
+            TweenLite.to(mainMonolith.mesh.rotation, 6, {
                 z: mainMonolith.mesh.rotation.z - Math.PI,
                 ease: Power4.easeInOut
             });
@@ -121,8 +121,8 @@ function getClicked3DPoint(evt) {
                     const monolith = monoliths[i];
                     const currentNote = {note: monolith.note};
                     const targetNote = audioManager.getRandomFrequence();
-                    const duration = 0.8;
-                    const delay = 0.08 * i;
+                    const duration = 0.4;
+                    const delay = 0.25 * i;
                     TweenLite.to(monolith.mesh.position, duration, {y: (targetNote - averageNote)/2, delay: delay, ease: Elastic.easeInOut.config(1)});
                     TweenLite.to(currentNote, duration, {
                         delay: delay,
@@ -138,8 +138,10 @@ function getClicked3DPoint(evt) {
                 }
             }, 1000);
             setTimeout(() => {
+                audioManager.playNote(audioManager.oscillators['osc1'], 0)
+                audioManager.playNote(audioManager.oscillators['osc2'], 0)
                 meshesRotationTargetLocked = false;
-            }, 5000);
+            }, 7000);
         } else {
             for(let j = 0, h = intersects.length; j<h; j++) {
                 let intersect = intersects[j];

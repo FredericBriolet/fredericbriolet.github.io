@@ -37,7 +37,7 @@ class Monolith {
 
     let minNote = Math.min( ...audioManager.allNotes );
     let maxNote = Math.max( ...audioManager.allNotes );
-    this.volume = Math.max(1 - (this.note - minNote) / (maxNote - minNote), 0.1) * 0.15;
+    this.volume = Math.max(1 - (this.note - minNote) / (maxNote - minNote), 0.05) * 0.15;
 
     this.isAnimating = false;
 

@@ -139,3 +139,7 @@ body.visible.grabbing {
 .overlay-button:focus {
   outline: none;
 }
+
+div.dg.ac {
+  z-index: 1;
+}
