@@ -58,6 +58,7 @@ function init() {
         let options = {};
 
         let oscIndex = i % 2 === 0 ? 0 : 1;
+        // let oscIndex = 0;
         options.osc = audioManager.oscillators[Object.keys(audioManager.oscillators)[oscIndex]];
         options.note = audioManager.getRandomFrequence();
 

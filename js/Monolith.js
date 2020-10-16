@@ -37,7 +37,7 @@ class Monolith {
 
     let minNote = Math.min( ...audioManager.allNotes );
     let maxNote = Math.max( ...audioManager.allNotes );
-    this.volume = 1 - (this.note - minNote) / (maxNote - minNote);
+    this.volume = Math.max(1 - (this.note - minNote) / (maxNote - minNote), 0.1) * 0.15;
 
     this.isAnimating = false;
 
@@ -67,8 +67,8 @@ class Monolith {
     let playBoth = Math.sin(this.parent.rotation.y) > 0.98 || Math.sin(this.parent.rotation.y) < -0.98;
     let playOne = Math.sin(this.parent.rotation.y) > 0.98;
     if(playOne) {
-      audioManager.playNote(this.osc, this.note, this.volume);
       if(!this.isAnimating) {
+        audioManager.playNote(this.osc, this.note, this.volume);
         this.playAnimation();
       }
     }

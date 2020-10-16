@@ -9,14 +9,20 @@ class AudioManager {
     ]
     this.oscillators = {}
 
+    this.reverbNotesPlaying = 0;
+    this.reverbVolume = null;
+    this.reverbVolumeTweener = null;
+    this.reverbVolumeValue = 0.1;
+
     this.midNotes = [220,247,262,294,330,349,392,440]
     this.highNotes = [493,523,587,659,698,783,880]
     this.lowNotes = [110,123,130,146,164,174,195]
-    this.blackNotes = [78, 92, 104, 116, 139, 156, 185, 208, 233, 277, 311, 370, 415, 466, 554, 622, 740]
+    // this.blackNotes = [78, 92, 104, 116, 139, 156, 185, 208, 233, 277, 311, 370, 415, 466, 554, 622, 740]
+    this.blackNotes = [104, 116, 139, 156, 185, 208, 233, 277, 311, 370, 415, 466, 554, 622, 740]
     this.allNotes = this.blackNotes;
 
-    this.noteOffset = 1;
-    this.timeoutDuration = 150;
+    this.timeoutDuration = 400;
+    this.reverbDuration = 5000;
   }
 
   initAudio() {
@@ -27,24 +33,32 @@ class AudioManager {
 
   initOscillators(options) {
     const osc = this.audioCtx.createOscillator();
-
+    osc.timeout = null;
+    
     osc.volume = this.audioCtx.createGain();
     osc.volume.connect(this.audioCtx.destination);
-    osc.volume.gain.value = 1;
+    osc.volume.gain.setValueAtTime(0.0, this.audioCtx.currentTime);
+    osc.connect(osc.volume);
+    
+
+    this.reverbVolume = this.audioCtx.createGain();
+    this.reverbVolume.connect(this.audioCtx.destination);
+
+    const reverb = new SimpleReverb(this.audioCtx, {
+      seconds: this.reverbDuration / 1000,
+      decay: 2,
+      reverse: 0
+    })
+    osc.volume.connect(reverb.input);
+    reverb.output.connect(this.reverbVolume)
+    this.reverbVolume.gain.setValueAtTime(1, this.audioCtx.currentTime);
 
     osc.type = options[1];
     osc.frequency.value = options[2];
-    osc.connect(osc.volume);
-    osc.start();
+
+    osc.start(0);
+
     const name = options[0];
-    const reverb = new SimpleReverb(this.audioCtx, {
-      seconds:4,
-      decay: 0,
-      reverse: 0
-    })
-    osc.connect(reverb.input);
-    reverb.connect(this.audioCtx.destination);
-    osc.timeout = null;
     this.oscillators[name] = osc;
   }
 
@@ -56,40 +70,33 @@ class AudioManager {
     return sum/this.allNotes.length;
   }
 
-  playNote(osc, freq = null, volume = 1) {
-    if(!freq) {
+  clamp(num, min, max) {
+    return num <= min ? min : num >= max ? max : num;
+  }
+
+  playNote(osc, freq = null, volume = 0.01) {
+    if (!freq) {
       freq = this.getRandomFrequence();
     }
+    // console.log(volume);
+
+    // this.attack = 1;
+    // this.release = 1;
+    // osc.volume.gain.linearRampToValueAtTime(1, audio.currentTime + attack);
+
+    osc.volume.gain.setValueAtTime(volume, this.audioCtx.currentTime);
 
     osc.frequency.setValueAtTime(freq, this.audioCtx.currentTime);
-    osc.volume.gain.value = Math.min(volume, 1);
-    
-    if(osc.timeout) {
+
+    this.reverbNotesPlaying++;
+
+    if (osc.timeout) {
       clearTimeout(osc.timeout);
     }
     osc.timeout = setTimeout(() => {
       osc.frequency.setValueAtTime(0, this.audioCtx.currentTime);
+      clearTimeout(osc.timeout);
     }, this.timeoutDuration);
-  }
-
-  playNotes() {
-    this.possibleFrequences = this.allNotes.slice(0);
-    let index = 0;
-
-    for(let name in this.oscillators) {
-      setTimeout(() => {
-        let osc = this.oscillators[name];
-        
-        const freq = this.getRandomFrequence();
-        let freqIndex = this.possibleFrequences.indexOf(freq);
-        if (freqIndex > -1) {
-          this.possibleFrequences.splice(freqIndex, 1);
-        }
-
-        this.playNote(osc, freq, volume);
-      }, index * this.timeoutDuration);
-      index++;
-    }
   }
 
   getRandomFrequence() {
